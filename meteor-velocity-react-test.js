@@ -1,3 +1,5 @@
+const ReactTransitionGroup = React.addons.CSSTransitionGroup;
+
 var VelocityTransitionGroupChild = React.createClass({
   displayName: 'VelocityTransitionGroupChild',
 
@@ -64,7 +66,7 @@ VelocityTransitionGroup = React.createClass({
 
     // Without our custom childFactory, we just get a default TransitionGroup that doesn't do
     // anything special at all.
-    if (!this.constructor.disabledForTest && !velocity.velocityReactServerShim) {
+    if (!this.constructor.disabledForTest && !window.$.Velocity.velocityReactServerShim) {
       transitionGroupProps.childFactory = this._wrapChild;
     }
 
@@ -76,7 +78,7 @@ VelocityTransitionGroup = React.createClass({
       this.childWillEnter(node, doneFn);
     } else {
       this._finishAnimation(node, this.props.enter);
-      
+
       // Important to tick over so that any callbacks due to finishing the animation complete first.
       // isMounted check necessary to avoid exception in tests, which can mount and unmount a
       // component before this runs over, as the "doneFn" callback does a ref lookup rather than
@@ -102,7 +104,7 @@ VelocityTransitionGroup = React.createClass({
 
     // We're not going to start the animation for a tick, so set the node's display to none so that
     // it doesn't flash in.
-    velocity.CSS.setPropertyValue(node, 'display', 'none');
+    window.$.Velocity.CSS.setPropertyValue(node, 'display', 'none');
 
     this._entering.push({
       node: node,
@@ -135,7 +137,7 @@ VelocityTransitionGroup = React.createClass({
         doneFn();
       }
 
-      return true;      
+      return true;
     } else {
       return false;
     }
@@ -211,10 +213,10 @@ VelocityTransitionGroup = React.createClass({
     // Because Safari can synchronously repaint when CSS "display" is reset, we set styles for all
     // browsers before the rAF tick below that starts the animation. This way you know in all
     // cases that you need to support your static styles being visible on the element before
-    // the animation begins. 
+    // the animation begins.
     if (style != null) {
       _.each(style, function (value, key) {
-        velocity.hook(nodes, key, value);
+        window.$.Velocity.hook(nodes, key, value);
       });
     }
 
@@ -236,14 +238,14 @@ VelocityTransitionGroup = React.createClass({
       completeFn();
       completeFn = null;
     } else {
-      velocity(nodes, 'stop');
+      window.$.Velocity(nodes, 'stop');
     }
 
     // Bit of a hack. Without this rAF, sometimes an enter animation doesn't start running, or is
     // stopped before getting anywhere. This should get us on the other side of both completeFn and
     // any _finishAnimation that's happening.
     window.requestAnimationFrame(function () {
-      velocity(nodes, animation, _.extend({}, opts, {
+      window.$.Velocity(nodes, animation, _.extend({}, opts, {
         complete: completeFn
       }));
     });
@@ -257,7 +259,7 @@ VelocityTransitionGroup = React.createClass({
 
     if (style != null) {
       _.each(style, function (value, key) {
-        velocity.hook(node, key, value);
+        window.$.Velocity.hook(node, key, value);
       });
     }
 
@@ -265,8 +267,8 @@ VelocityTransitionGroup = React.createClass({
       // Opts are relevant even though we're immediately finishing, since things like "display"
       // can affect the animation outcome.
 
-      velocity(node, animation, opts);
-      velocity(node, 'finishAll', true);
+      window.$.Velocity(node, animation, opts);
+      window.$.Velocity(node, 'finishAll', true);
     }
   },
 

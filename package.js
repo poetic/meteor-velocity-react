@@ -16,9 +16,10 @@ Package.onUse(function(api) {
   api.use('underscore@1.0.4');
   api.use('jquery', 'client');
   api.use('react@0.1.13');
-  api.use('jeremy:velocity-animate@1.2.3')
+  api.use('percolate:velocityjs')
   api.addFiles('meteor-velocity-react-test.js');
 
+  api.export('velocity');
   api.export('VelocityTransitionGroup');
 });
 
