@@ -1,6 +1,6 @@
 Package.describe({
   name: 'brianscroggins24:meteor-velocity-react-test',
-  version: '0.0.1',
+  version: '0.0.2',
   // Brief, one-line summary of the package.
   summary: 'Velocity Transition Group for Meteor projects',
   // URL to the Git repository containing the source code for this package.

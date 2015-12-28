@@ -64,7 +64,7 @@ VelocityTransitionGroup = React.createClass({
 
     // Without our custom childFactory, we just get a default TransitionGroup that doesn't do
     // anything special at all.
-    if (!this.constructor.disabledForTest && !Velocity.velocityReactServerShim) {
+    if (!this.constructor.disabledForTest && !velocity.velocityReactServerShim) {
       transitionGroupProps.childFactory = this._wrapChild;
     }
 
@@ -102,7 +102,7 @@ VelocityTransitionGroup = React.createClass({
 
     // We're not going to start the animation for a tick, so set the node's display to none so that
     // it doesn't flash in.
-    Velocity.CSS.setPropertyValue(node, 'display', 'none');
+    velocity.CSS.setPropertyValue(node, 'display', 'none');
 
     this._entering.push({
       node: node,
@@ -214,7 +214,7 @@ VelocityTransitionGroup = React.createClass({
     // the animation begins. 
     if (style != null) {
       _.each(style, function (value, key) {
-        Velocity.hook(nodes, key, value);
+        velocity.hook(nodes, key, value);
       });
     }
 
@@ -236,14 +236,14 @@ VelocityTransitionGroup = React.createClass({
       completeFn();
       completeFn = null;
     } else {
-      Velocity(nodes, 'stop');
+      velocity(nodes, 'stop');
     }
 
     // Bit of a hack. Without this rAF, sometimes an enter animation doesn't start running, or is
     // stopped before getting anywhere. This should get us on the other side of both completeFn and
     // any _finishAnimation that's happening.
     window.requestAnimationFrame(function () {
-      Velocity(nodes, animation, _.extend({}, opts, {
+      velocity(nodes, animation, _.extend({}, opts, {
         complete: completeFn
       }));
     });
@@ -257,7 +257,7 @@ VelocityTransitionGroup = React.createClass({
 
     if (style != null) {
       _.each(style, function (value, key) {
-        Velocity.hook(node, key, value);
+        velocity.hook(node, key, value);
       });
     }
 
@@ -265,13 +265,13 @@ VelocityTransitionGroup = React.createClass({
       // Opts are relevant even though we're immediately finishing, since things like "display"
       // can affect the animation outcome.
 
-      Velocity(node, animation, opts);
-      Velocity(node, 'finishAll', true);
+      velocity(node, animation, opts);
+      velocity(node, 'finishAll', true);
     }
   },
 
   _wrapChild: function (child) {
-    return React.createElement(VelocityTransitionGroupChild, {
+    return React.createElement(velocityTransitionGroupChild, {
       willAppearFunc: this.childWillAppear,
       willEnterFunc: this.childWillEnter,
       willLeaveFunc: this.childWillLeave,
