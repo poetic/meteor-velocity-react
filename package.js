@@ -16,7 +16,7 @@ Package.onUse(function(api) {
   api.use('underscore@1.0.4');
   api.use('jquery', 'client');
   api.use('react@0.1.13');
-  api.use('percolate:velocityjs');
+  api.use('poetic:meteor-velocityjs');
   api.addFiles(['velocity-transition-group.js', 'velocity-component.js']);
 
   api.export('VelocityTransitionGroup');
