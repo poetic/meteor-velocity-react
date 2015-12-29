@@ -1,13 +1,9 @@
 Package.describe({
-  name: 'brianscroggins24:meteor-velocity-react-test',
-  version: '0.0.2',
-  // Brief, one-line summary of the package.
+  name: 'poetic:meteor-velocity-react',
+  version: '0.0.1',
   summary: "Fabric's Velocity React for Meteor projects",
-  // URL to the Git repository containing the source code for this package.
-  git: '',
-  // By default, Meteor will default to using README.md for documentation.
-  // To avoid submitting documentation, set this field to null.
-  documentation: null
+  git: 'https://github.com/poetic/meteor-velocity-react',
+  documentation: 'README.md'
 });
 
 Package.onUse(function(api) {
@@ -26,6 +22,6 @@ Package.onUse(function(api) {
 Package.onTest(function(api) {
   api.use('ecmascript');
   api.use('tinytest');
-  api.use('brianscroggins24:meteor-velocity-react-test');
-  api.addFiles('meteor-velocity-react-test-tests.js');
+  api.use('poetic:meteor-velocity-react');
+  api.addFiles('meteor-velocity-react-tests.js');
 });
