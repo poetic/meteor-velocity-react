@@ -1,4 +1,4 @@
-const ReactTransitionGroup = React.addons.CSSTransitionGroup;
+const ReactTransitionGroup = React.addons.TransitionGroup;
 
 var VelocityTransitionGroupChild = React.createClass({
   displayName: 'VelocityTransitionGroupChild',
@@ -61,11 +61,8 @@ VelocityTransitionGroup = React.createClass({
   },
 
   render: function () {
-    // Pass any props that are not our own on into the TransitionGroup delegate.
     var transitionGroupProps = _.omit(this.props, _.keys(this.constructor.propTypes));
 
-    // Without our custom childFactory, we just get a default TransitionGroup that doesn't do
-    // anything special at all.
     if (!this.constructor.disabledForTest && !window.$.Velocity.velocityReactServerShim) {
       transitionGroupProps.childFactory = this._wrapChild;
     }
@@ -79,12 +76,6 @@ VelocityTransitionGroup = React.createClass({
     } else {
       this._finishAnimation(node, this.props.enter);
 
-      // Important to tick over so that any callbacks due to finishing the animation complete first.
-      // isMounted check necessary to avoid exception in tests, which can mount and unmount a
-      // component before this runs over, as the "doneFn" callback does a ref lookup rather than
-      // closing over the component.
-      //
-      // Using setTimeout so that doneFn gets called even when the tab is hidden.
       var self = this;
       window.setTimeout(function () {
         if (self.isMounted()) {
@@ -97,13 +88,8 @@ VelocityTransitionGroup = React.createClass({
   childWillEnter: function (node, doneFn) {
     if (this._shortCircuitAnimation(this.props.enter, doneFn)) return;
 
-    // By finishing a "leave" on the element, we put it in the right state to be animated in. Useful
-    // if "leave" includes a rotation or something that we'd like to have as our starting point, for
-    // symmetry.
     this._finishAnimation(node, this.props.leave);
 
-    // We're not going to start the animation for a tick, so set the node's display to none so that
-    // it doesn't flash in.
     window.$.Velocity.CSS.setPropertyValue(node, 'display', 'none');
 
     this._entering.push({
@@ -125,12 +111,6 @@ VelocityTransitionGroup = React.createClass({
     this._schedule();
   },
 
-  // document.hidden check is there because animation completion callbacks won't fire (due to
-  // chaining off of rAF), which would prevent entering / leaving DOM nodes from being cleaned up
-  // while the tab is hidden.
-  //
-  // Returns true if this did short circuit, false if lifecycle methods should continue with
-  // their animations.
   _shortCircuitAnimation: function (animationProp, doneFn) {
     if (document.hidden || (this._parseAnimationProp(animationProp).animation == null)) {
       if (this.isMounted()) {
@@ -150,8 +130,6 @@ VelocityTransitionGroup = React.createClass({
 
     this._scheduled = true;
 
-    // Need rAF to make sure we're in the same event queue as Velocity from here out. Important
-    // for avoiding getting wrong interleaving with Velocity callbacks.
     window.requestAnimationFrame(this._runAnimations);
   },
 
@@ -165,8 +143,6 @@ VelocityTransitionGroup = React.createClass({
     this._leaving = [];
   },
 
-  // Used to parse out the 'enter' and 'leave' properties. Handles cases where they are omitted
-  // as well as when they are just strings and not hashes of animation and options.
   _parseAnimationProp: function (animationProp) {
     var animation, opts, style;
 
@@ -200,20 +176,12 @@ VelocityTransitionGroup = React.createClass({
     var style = parsedAnimation.style;
     var opts = parsedAnimation.opts;
 
-    // Clearing display reverses the behavior from childWillAppear where all elements are added with
-    // display: none to prevent them from flashing in before the animation starts. We don't do this
-    // for the fade/slide animations or any animation that ends in "In," since Velocity will handle
-    // it for us.
     if (entering && !(/^(fade|slide)/.test(animation) || /In$/.test(animation))) {
       style = _.extend({
         display: ''
       }, style);
     }
 
-    // Because Safari can synchronously repaint when CSS "display" is reset, we set styles for all
-    // browsers before the rAF tick below that starts the animation. This way you know in all
-    // cases that you need to support your static styles being visible on the element before
-    // the animation begins.
     if (style != null) {
       _.each(style, function (value, key) {
         window.$.Velocity.hook(nodes, key, value);
@@ -229,11 +197,6 @@ VelocityTransitionGroup = React.createClass({
       doneFns.map(function (doneFn) { doneFn(); });
     };
 
-    // For nodes that are entering, we tell the TransitionGroup that we're done with them
-    // immediately. That way, they can be removed later before their entering animations complete.
-    // If we're leaving, we stop current animations (which may be partially-completed enter
-    // animations) so that we can then animate out. Velocity typically makes these transitions
-    // very smooth, correctly animating from whatever state the element is currently in.
     if (entering) {
       completeFn();
       completeFn = null;
@@ -241,9 +204,6 @@ VelocityTransitionGroup = React.createClass({
       window.$.Velocity(nodes, 'stop');
     }
 
-    // Bit of a hack. Without this rAF, sometimes an enter animation doesn't start running, or is
-    // stopped before getting anywhere. This should get us on the other side of both completeFn and
-    // any _finishAnimation that's happening.
     window.requestAnimationFrame(function () {
       window.$.Velocity(nodes, animation, _.extend({}, opts, {
         complete: completeFn
@@ -264,8 +224,6 @@ VelocityTransitionGroup = React.createClass({
     }
 
     if (animation != null) {
-      // Opts are relevant even though we're immediately finishing, since things like "display"
-      // can affect the animation outcome.
 
       window.$.Velocity(node, animation, opts);
       window.$.Velocity(node, 'finishAll', true);
@@ -273,101 +231,11 @@ VelocityTransitionGroup = React.createClass({
   },
 
   _wrapChild: function (child) {
-    return React.createElement(velocityTransitionGroupChild, {
+    return React.createElement(VelocityTransitionGroupChild, {
       willAppearFunc: this.childWillAppear,
       willEnterFunc: this.childWillEnter,
       willLeaveFunc: this.childWillLeave,
     }, child);
   },
-});
-
-VelocityComponent = React.createClass({
-  displayName: 'VelocityComponent',
-
-  propTypes: {
-    animation: React.PropTypes.any,
-    children: React.PropTypes.element.isRequired,
-    runOnMount: React.PropTypes.bool,
-    targetQuerySelector: React.PropTypes.string,
-  },
-
-  getDefaultProps: function () {
-    return {
-      animation: null,
-      runOnMount: false,
-      targetQuerySelector: null,
-    }
-  },
-
-  componentDidMount: function () {
-    this.runAnimation();
-
-    if (this.props.runOnMount !== true) {
-      this._finishAnimation();
-    }
-  },
-
-  componentWillUpdate: function (newProps, newState) {
-    if (!_.isEqual(newProps.animation, this.props.animation)) {
-      this._stopAnimation();
-      this._scheduleAnimation();
-    }
-  },
-
-  componentWillUnmount: function () {
-    this._stopAnimation();
-  },
-
-  runAnimation: function (config) {
-    config = config || {};
-
-    this._shouldRunAnimation = false;
-
-    if (!this.isMounted() || this.props.animation == null) {
-      return;
-    }
-
-    if (config.stop) {
-      window.$.Velocity(this._getDOMTarget(), 'stop', true);
-    } else if (config.finish) {
-      window.$.Velocity(this._getDOMTarget(), 'finishAll', true);
-    }
-
-    var opts = _.omit(this.props, _.keys(this.constructor.propTypes));
-    window.$.Velocity(this._getDOMTarget(), this.props.animation, opts);
-  },
-
-  _scheduleAnimation: function () {
-    if (this._shouldRunAnimation) {
-      return;
-    }
-
-    this._shouldRunAnimation = true;
-    setTimeout(this.runAnimation, 0);
-  },
-
-  _getDOMTarget: function () {
-    var node = ReactDOM.findDOMNode(this);
-
-    if (this.props.targetQuerySelector === 'children') {
-      return node.children;
-    } else if (this.props.targetQuerySelector != null) {
-      return node.querySelectorAll(this.props.targetQuerySelector);
-    } else {
-      return node;
-    }
-  },
-
-  _finishAnimation: function () {
-    window.$.Velocity(this._getDOMTarget(), 'finishAll', true);
-  },
-
-  _stopAnimation: function () {
-    window.$.Velocity(this._getDOMTarget(), 'stop', true);
-  },
-
-  render: function () {
-    return this.props.children;
-  }
 });
 
