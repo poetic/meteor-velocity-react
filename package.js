@@ -19,8 +19,9 @@ Package.onUse(function(api) {
   api.use('percolate:velocityjs')
   api.addFiles('meteor-velocity-react-test.js');
 
-  api.export('velocity');
   api.export('VelocityTransitionGroup');
+  api.export('VelocityComponent');
+  api.export('velocity');
 });
 
 Package.onTest(function(api) {
