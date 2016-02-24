@@ -27,7 +27,7 @@ var VelocityTransitionGroupChild = React.createClass({
   },
 });
 
-var VelocityTransitionGroup = React.createClass({
+VelocityTransitionGroup = React.createClass({
   displayName: 'VelocityTransitionGroup',
 
   statics: {

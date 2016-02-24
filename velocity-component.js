@@ -1,4 +1,4 @@
-var VelocityComponent = React.createClass({
+VelocityComponent = React.createClass({
   displayName: 'VelocityComponent',
 
   propTypes: {
