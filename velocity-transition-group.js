@@ -71,7 +71,7 @@ VelocityTransitionGroup = React.createClass({
   render: function () {
     var transitionGroupProps = _.omit(this.props, _.keys(this.constructor.propTypes));
 
-    if (!this.constructor.disabledForTest && !Velocity.velocityReactServerShim) {
+    if (!this.constructor.disabledForTest && !window.$.Velocity.velocityReactServerShim) {
       transitionGroupProps.childFactory = this._wrapChild;
     }
 
@@ -99,7 +99,7 @@ VelocityTransitionGroup = React.createClass({
     this._finishAnimation(node, this.props.leave, {complete: undefined});
 
     _.forEach(this.props.enterHideStyle, function (val, key) {
-      Velocity.CSS.setPropertyValue(node, key, val);
+      window.$.Velocity.CSS.setPropertyValue(node, key, val);
     });
 
     this._entering.push({
@@ -195,7 +195,7 @@ VelocityTransitionGroup = React.createClass({
 
     if (style != null) {
       _.each(style, function (value, key) {
-        Velocity.hook(nodes, key, value);
+        window.$.Velocity.hook(nodes, key, value);
       });
     }
 
@@ -212,7 +212,7 @@ VelocityTransitionGroup = React.createClass({
       doneFn();
       doneFn = null;
     } else {
-      Velocity(nodes, 'stop');
+      window.$.Velocity(nodes, 'stop');
     }
 
     var combinedCompleteFn;
@@ -227,7 +227,7 @@ VelocityTransitionGroup = React.createClass({
     }
 
     shimRequestAnimationFrame(function () {
-      Velocity(nodes, animation, _.extend({}, opts, {
+      window.$.Velocity(nodes, animation, _.extend({}, opts, {
         complete: combinedCompleteFn,
       }));
     });
@@ -241,14 +241,14 @@ VelocityTransitionGroup = React.createClass({
 
     if (style != null) {
       _.each(style, function (value, key) {
-        Velocity.hook(node, key, value);
+        window.$.Velocity.hook(node, key, value);
       });
     }
 
     if (animation != null) {
 
-      Velocity(node, animation, opts);
-      Velocity(node, 'finishAll', true);
+      window.$.Velocity(node, animation, opts);
+      window.$.Velocity(node, 'finishAll', true);
     }
   },
 

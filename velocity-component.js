@@ -45,13 +45,13 @@ VelocityComponent = React.createClass({
     }
 
     if (config.stop) {
-      Velocity(this._getDOMTarget(), 'stop', true);
+      window.$.Velocity(this._getDOMTarget(), 'stop', true);
     } else if (config.finish) {
-      Velocity(this._getDOMTarget(), 'finishAll', true);
+      window.$.Velocity(this._getDOMTarget(), 'finishAll', true);
     }
 
     var opts = _.omit(this.props, _.keys(this.constructor.propTypes));
-    Velocity(this._getDOMTarget(), this.props.animation, opts);
+    window.$.Velocity(this._getDOMTarget(), this.props.animation, opts);
   },
 
   _scheduleAnimation: function () {
@@ -76,11 +76,11 @@ VelocityComponent = React.createClass({
   },
 
   _finishAnimation: function () {
-    Velocity(this._getDOMTarget(), 'finishAll', true);
+    window.$.Velocity(this._getDOMTarget(), 'finishAll', true);
   },
 
   _stopAnimation: function () {
-    Velocity(this._getDOMTarget(), 'stop', true);
+    window.$.Velocity(this._getDOMTarget(), 'stop', true);
   },
 
   render: function () {
