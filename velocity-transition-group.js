@@ -1,5 +1,16 @@
 const ReactTransitionGroup = React.addons.TransitionGroup;
 
+var shimRequestAnimationFrame =
+  (typeof window !== 'undefined') && (
+    window.requestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    function(callback) { window.setTimeout(callback, 0) }
+  );
+
+// Fix 'Invalid calling object' error in IE
+shimRequestAnimationFrame = (typeof window !== 'undefined') &&  shimRequestAnimationFrame.bind(window);
+
 var VelocityTransitionGroupChild = React.createClass({
   displayName: 'VelocityTransitionGroupChild',
 
