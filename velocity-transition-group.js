@@ -27,7 +27,7 @@ var VelocityTransitionGroupChild = React.createClass({
   },
 });
 
-VelocityTransitionGroup = React.createClass({
+var VelocityTransitionGroup = React.createClass({
   displayName: 'VelocityTransitionGroup',
 
   statics: {
@@ -39,6 +39,8 @@ VelocityTransitionGroup = React.createClass({
     enter: React.PropTypes.any,
     leave: React.PropTypes.any,
     children: React.PropTypes.any,
+    enterHideStyle: React.PropTypes.object,
+    enterShowStyle: React.PropTypes.object,
   },
 
   getDefaultProps: function() {
@@ -46,6 +48,12 @@ VelocityTransitionGroup = React.createClass({
       runOnMount: false,
       enter: null,
       leave: null,
+      enterHideStyle: {
+        display: 'none',
+      },
+      enterShowStyle: {
+        display: '',
+      },
     };
   },
 
@@ -63,7 +71,7 @@ VelocityTransitionGroup = React.createClass({
   render: function () {
     var transitionGroupProps = _.omit(this.props, _.keys(this.constructor.propTypes));
 
-    if (!this.constructor.disabledForTest && !window.$.Velocity.velocityReactServerShim) {
+    if (!this.constructor.disabledForTest && !Velocity.velocityReactServerShim) {
       transitionGroupProps.childFactory = this._wrapChild;
     }
 
@@ -88,9 +96,11 @@ VelocityTransitionGroup = React.createClass({
   childWillEnter: function (node, doneFn) {
     if (this._shortCircuitAnimation(this.props.enter, doneFn)) return;
 
-    this._finishAnimation(node, this.props.leave);
+    this._finishAnimation(node, this.props.leave, {complete: undefined});
 
-    window.$.Velocity.CSS.setPropertyValue(node, 'display', 'none');
+    _.forEach(this.props.enterHideStyle, function (val, key) {
+      Velocity.CSS.setPropertyValue(node, key, val);
+    });
 
     this._entering.push({
       node: node,
@@ -130,7 +140,7 @@ VelocityTransitionGroup = React.createClass({
 
     this._scheduled = true;
 
-    window.requestAnimationFrame(this._runAnimations);
+    shimRequestAnimationFrame(this._runAnimations);
   },
 
   _runAnimations: function () {
@@ -176,20 +186,21 @@ VelocityTransitionGroup = React.createClass({
     var style = parsedAnimation.style;
     var opts = parsedAnimation.opts;
 
-    if (entering && !(/^(fade|slide)/.test(animation) || /In$/.test(animation))) {
-      style = _.extend({
-        display: ''
-      }, style);
+    if (entering) {
+      if (!_.isEqual(this.props.enterShowStyle, {display: ''})
+        || !(/^(fade|slide)/.test(animation) || /In$/.test(animation))) {
+        style = _.extend({}, this.props.enterShowStyle, style);
+      }
     }
 
     if (style != null) {
       _.each(style, function (value, key) {
-        window.$.Velocity.hook(nodes, key, value);
+        Velocity.hook(nodes, key, value);
       });
     }
 
     var self = this;
-    var completeFn = function () {
+    var doneFn = function () {
       if (!self.isMounted()) {
         return;
       }
@@ -198,35 +209,46 @@ VelocityTransitionGroup = React.createClass({
     };
 
     if (entering) {
-      completeFn();
-      completeFn = null;
+      doneFn();
+      doneFn = null;
     } else {
-      window.$.Velocity(nodes, 'stop');
+      Velocity(nodes, 'stop');
     }
 
-    window.requestAnimationFrame(function () {
-      window.$.Velocity(nodes, animation, _.extend({}, opts, {
-        complete: completeFn
+    var combinedCompleteFn;
+    if (doneFn && opts.complete) {
+      var optsCompleteFn = opts.complete;
+      combinedCompleteFn = function () {
+        doneFn();
+        optsCompleteFn();
+      };
+    } else {
+      combinedCompleteFn = doneFn || opts.complete;
+    }
+
+    shimRequestAnimationFrame(function () {
+      Velocity(nodes, animation, _.extend({}, opts, {
+        complete: combinedCompleteFn,
       }));
     });
   },
 
-  _finishAnimation: function (node, animationProp) {
+  _finishAnimation: function (node, animationProp, overrideOpts) {
     var parsedAnimation = this._parseAnimationProp(animationProp);
     var animation = parsedAnimation.animation;
     var style = parsedAnimation.style;
-    var opts = parsedAnimation.opts;
+    var opts = _.extend({}, parsedAnimation.opts, overrideOpts);
 
     if (style != null) {
       _.each(style, function (value, key) {
-        window.$.Velocity.hook(node, key, value);
+        Velocity.hook(node, key, value);
       });
     }
 
     if (animation != null) {
 
-      window.$.Velocity(node, animation, opts);
-      window.$.Velocity(node, 'finishAll', true);
+      Velocity(node, animation, opts);
+      Velocity(node, 'finishAll', true);
     }
   },
 
@@ -238,4 +260,3 @@ VelocityTransitionGroup = React.createClass({
     }, child);
   },
 });
-
