@@ -1,6 +1,6 @@
 Package.describe({
   name: 'poetic:meteor-velocity-react',
-  version: '0.0.2',
+  version: '0.0.3',
   summary: "Fabric's Velocity React for Meteor projects",
   git: 'https://github.com/poetic/meteor-velocity-react',
   documentation: 'README.md'
